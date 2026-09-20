@@ -1,0 +1,6 @@
+# Copias de respaldo locales
+Respaldo/
+
+# Archivos de configuracion del entorno local
+.agents/
+start.bat

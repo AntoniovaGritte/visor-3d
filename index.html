@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Visor 3D Anatómico | Herramienta de Sección y Corte Didáctico</title>
+  <meta name="description" content="Visor 3D interactivo para anatomía con herramienta de sección transversal didáctica y soporte de texturas. Diseñado para profesores y estudiantes.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css?v=3.3">
+
+  <!-- Import Maps para Three.js y complementos modernos vía CDN -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Estructura Principal de la Aplicación -->
+  <div class="app-layout">
+    <!-- Barra Superior de Navegación y Herramientas -->
+    <header class="app-header glass-panel">
+      <div class="logo-group">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="logo-title">AnatoCut <span class="badge">3D Didáctico</span></h1>
+          <p class="logo-subtitle">Visor anatómico con corte transversal</p>
+        </div>
+      </div>
+
+      <!-- Espacio Central: Logo de Ambystoma Technologies -->
+      <div class="header-center-branding" title="Ambystoma Technologies - Science and Technology Applications">
+        <img src="logo.png?v=3.3" alt="Ambystoma Technologies" class="header-brand-logo">
+      </div>
+
+      <div class="header-actions">
+        <!-- Botón de Mesa Giratoria en la barra superior (a la izquierda de Cargar Modelo 3D) -->
+        <button id="btn-turntable" class="btn btn-secondary active" title="Rotar la muestra 360° continuamente (haz clic en la pantalla o vuelve a presionar para detener)">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          <span>Mesa giratoria</span>
+        </button>
+
+        <!-- Botón de subir archivo -->
+        <label for="file-input" class="btn btn-primary" title="Subir archivo 3D con o sin texturas">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span>Cargar Modelo 3D</span>
+        </label>
+        <input type="file" id="file-input" multiple accept=".gltf,.glb,.obj,.mtl,.stl,.ply,.jpg,.jpeg,.png,.webp,.bmp" style="display: none;">
+
+        <!-- Botón de Modelos de Muestra -->
+        <button id="btn-sample-model" class="btn btn-secondary" title="Abrir galería de modelos de muestra anatómicos">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Modelos de muestra</span>
+        </button>
+
+        <!-- Botones de Utilidad -->
+        <button id="btn-reset-view" class="btn-icon" title="Centrar cámara (Espacio)">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+        </button>
+        <button id="btn-screenshot" class="btn-icon" title="Capturar imagen en alta resolución">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+        </button>
+        <button id="btn-fullscreen" class="btn-icon" title="Pantalla completa (F)">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+          </svg>
+        </button>
+        <button id="btn-help" class="btn-icon" title="Instrucciones didácticas">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Contenedor Principal: Sidebar Izquierda + Espacio 3D Derecha -->
+    <div class="app-main-content">
+      <!-- Columna Izquierda FIJA: Herramienta Didáctica de Corte Transversal -->
+      <aside id="slicer-panel" class="slicer-panel">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <div class="tool-dot"></div>
+            <h2 class="panel-title">Herramienta de Sección y Corte</h2>
+          </div>
+          <label class="toggle-switch" title="Activar / Desactivar plano de corte">
+            <input type="checkbox" id="toggle-slicer">
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div id="slicer-controls" class="panel-body">
+          <!-- GRUPO 1: HERRAMIENTAS DE CORTE (Desplegado por defecto) -->
+          <div class="accordion-group expanded" id="group-slicer">
+            <button type="button" class="accordion-header" id="btn-toggle-group-slicer" aria-expanded="true">
+              <div class="accordion-title-wrap">
+                <svg class="accordion-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                </svg>
+                <span>Herramientas de Corte</span>
+              </div>
+              <svg class="accordion-chevron" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+
+            <div class="accordion-content" id="content-group-slicer">
+              <!-- Selector de Planos Anatómicos -->
+              <div class="control-section">
+                <label class="section-label">Plano Anatómico</label>
+                <div class="plane-buttons">
+                  <button class="btn-plane active" data-plane="axial" title="Corte horizontal (Superior/Inferior)">
+                    <span class="plane-badge">Y</span>
+                    <span>Axial</span>
+                  </button>
+                  <button class="btn-plane" data-plane="sagital" title="Corte longitudinal sagital (Izquierda/Derecha)">
+                    <span class="plane-badge">X</span>
+                    <span>Sagital</span>
+                  </button>
+                  <button class="btn-plane" data-plane="coronal" title="Corte longitudinal coronal (Anterior/Posterior)">
+                    <span class="plane-badge">Z</span>
+                    <span>Coronal</span>
+                  </button>
+                  <button class="btn-plane" data-plane="custom" title="Inclinación angular personalizada">
+                    <span class="plane-badge">★</span>
+                    <span>Libre</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Ángulo Personalizado (se muestra solo en modo Libre) -->
+              <div id="custom-angle-section" class="control-section hidden">
+                <div class="slider-header">
+                  <label for="slice-angle-x" class="section-label">Inclinación X (°)</label>
+                  <span id="slice-angle-x-val" class="mono-badge">0°</span>
+                </div>
+                <input type="range" id="slice-angle-x" min="-90" max="90" value="0" step="1">
+
+                <div class="slider-header" style="margin-top: 8px;">
+                  <label for="slice-angle-z" class="section-label">Inclinación Z (°)</label>
+                  <span id="slice-angle-z-val" class="mono-badge">0°</span>
+                </div>
+                <input type="range" id="slice-angle-z" min="-90" max="90" value="0" step="1">
+              </div>
+
+              <!-- Slider de Desplazamiento del Corte (Scrubbing / Tomografía) -->
+              <div class="control-section">
+                <div class="slider-header">
+                  <label for="slice-position" class="section-label">Posición del Corte</label>
+                  <span id="slice-pos-val" class="mono-badge">50%</span>
+                </div>
+                <div class="slider-container">
+                  <input type="range" id="slice-position" min="0" max="100" value="50" step="0.2">
+                  <div class="range-ticks">
+                    <span>Inicio</span>
+                    <span>Medio</span>
+                    <span>Fin</span>
+                  </div>
+                </div>
+                <div class="slice-quick-nav">
+                  <button id="btn-step-prev" class="btn-micro" title="Retroceder corte un paso">◀ Anterior</button>
+                  <button id="btn-invert-slice" class="btn-micro primary" title="Invertir cara visible del corte">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none">
+                      <polyline points="17 1 21 5 17 9"></polyline>
+                      <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                      <polyline points="7 23 3 19 7 15"></polyline>
+                      <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                    </svg>
+                    Invertir Vista
+                  </button>
+                  <button id="btn-step-next" class="btn-micro" title="Avanzar corte un paso">Siguiente ▶</button>
+                </div>
+              </div>
+
+              <!-- Transparencia y Visualización de la Lámina Guía (Ubicada justo abajo de las herramientas de corte) -->
+              <div class="control-section">
+                <label class="checkbox-option">
+                  <input type="checkbox" id="toggle-helper-plane" checked>
+                  <span class="custom-check"></span>
+                  <span>Mostrar lámina guía de corte</span>
+                </label>
+
+                <div class="slider-header" style="margin-top: 8px;">
+                  <label for="helper-opacity" class="section-label" style="font-size: 0.72rem;">Transparencia de la lámina</label>
+                  <span id="helper-opacity-val" class="mono-badge">8%</span>
+                </div>
+                <div class="slider-container">
+                  <input type="range" id="helper-opacity" min="0" max="40" value="8" step="1" title="Ajusta la opacidad del disco de corte (0% = completamente transparente / solo aro exterior)">
+                  <div class="range-ticks">
+                    <span>0% (Cristal puro)</span>
+                    <span>20%</span>
+                    <span>40%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Reproducción Continua de Escaneo -->
+              <button id="btn-play-scan" class="btn btn-secondary full-width">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span>Reproducir Escaneo Continuo</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- GRUPO 2: HERRAMIENTAS DE GIRO (Plegado por defecto) -->
+          <div class="accordion-group collapsed" id="group-rotation">
+            <button type="button" class="accordion-header" id="btn-toggle-group-rotation" aria-expanded="false">
+              <div class="accordion-title-wrap">
+                <svg class="accordion-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
+                <span>Herramientas de Giro</span>
+              </div>
+              <svg class="accordion-chevron" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+
+            <div class="accordion-content" id="content-group-rotation">
+              <div class="section-title-row">
+                <label class="section-label">Orientación del Modelo</label>
+                <button id="btn-reset-model-rot" class="btn-micro" title="Restablecer rotación de la pieza a 0°">
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                  </svg>
+                  <span>0°</span>
+                </button>
+              </div>
+
+              <!-- Slider Eje X (Inclinación Vertical 360°) -->
+              <div class="control-section" style="padding: 0; background: none; border: none;">
+                <div class="slider-header">
+                  <label for="model-rot-x" class="section-sublabel">
+                    <span class="axis-tag axis-x">Eje X</span> Inclinación Vertical
+                  </label>
+                  <span id="model-rot-x-val" class="mono-badge">0°</span>
+                </div>
+                <div class="slider-container">
+                  <input type="range" id="model-rot-x" min="0" max="360" value="0" step="1" title="Inclina la pieza 360° en el plano vertical">
+                  <div class="range-ticks">
+                    <span>0°</span>
+                    <span>180°</span>
+                    <span>360°</span>
+                  </div>
+                </div>
+
+                <!-- Botones de grados puntuales Eje X -->
+                <div class="rot-quick-buttons">
+                  <button class="btn-micro btn-rot-step" data-axis="x" data-deg="-90" title="Inclinar -90° vertical en Eje X">-90°</button>
+                  <button class="btn-micro btn-rot-step" data-axis="x" data-deg="-45" title="Inclinar -45° vertical en Eje X">-45°</button>
+                  <button class="btn-micro btn-rot-step" data-axis="x" data-deg="45" title="Inclinar +45° vertical en Eje X">+45°</button>
+                  <button class="btn-micro btn-rot-step" data-axis="x" data-deg="90" title="Inclinar +90° vertical en Eje X">+90°</button>
+                </div>
+              </div>
+
+              <!-- Slider Eje Z (Rotación Frontal / Roll 360°) -->
+              <div class="control-section" style="padding: 0; background: none; border: none;">
+                <div class="slider-header">
+                  <label for="model-rot-z" class="section-sublabel">
+                    <span class="axis-tag axis-z">Eje Z</span> Rotación Frontal (Roll)
+                  </label>
+                  <span id="model-rot-z-val" class="mono-badge">0°</span>
+                </div>
+                <div class="slider-container">
+                  <input type="range" id="model-rot-z" min="0" max="360" value="0" step="1" title="Gira la pieza 360° en el eje frontal Z">
+                  <div class="range-ticks">
+                    <span>0°</span>
+                    <span>180°</span>
+                    <span>360°</span>
+                  </div>
+                </div>
+
+                <!-- Botones de grados puntuales Eje Z -->
+                <div class="rot-quick-buttons">
+                  <button class="btn-micro btn-rot-step" data-axis="z" data-deg="-90" title="Rotar -90° en Eje Z">-90°</button>
+                  <button class="btn-micro btn-rot-step" data-axis="z" data-deg="-45" title="Rotar -45° en Eje Z">-45°</button>
+                  <button class="btn-micro btn-rot-step" data-axis="z" data-deg="45" title="Rotar +45° en Eje Z">+45°</button>
+                  <button class="btn-micro btn-rot-step" data-axis="z" data-deg="90" title="Rotar +90° en Eje Z">+90°</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Columna Derecha: Espacio 3D Dedicado + Barra Inferior Fija -->
+      <div class="viewport-wrapper">
+        <!-- Espacio 3D Exclusivo (sin elementos superpuestos) -->
+        <main id="viewport-container" class="viewport-container">
+          <canvas id="webgl-canvas"></canvas>
+        </main>
+
+        <!-- Barra Inferior FIJA: Ajustes de Renderizado e Información -->
+        <footer class="app-footer">
+          <div class="footer-group">
+            <span class="footer-label">Modo Visual:</span>
+            <div class="btn-group-pill">
+              <button class="btn-pill active" data-mode="realistic" title="Material con texturas PBR completas">Realista</button>
+              <button class="btn-pill" data-mode="clay" title="Modo yeso/escultura médica neutra">Hueso Yeso</button>
+              <button class="btn-pill" data-mode="xray" title="Modo Rayos X didáctico">Rayos X</button>
+              <button class="btn-pill" data-mode="wireframe" title="Ver estructura de polígonos/malla">Malla</button>
+            </div>
+          </div>
+
+          <div class="footer-divider"></div>
+
+          <div class="footer-group">
+            <span class="footer-label">Luz:</span>
+            <input type="range" id="light-intensity" min="0.2" max="3" value="1.2" step="0.1" title="Intensidad de iluminación">
+          </div>
+
+          <div class="footer-divider"></div>
+
+          <div class="footer-group model-info-group">
+            <span id="info-model-name" class="info-tag">Modelo: Vértebra de Muestra</span>
+            <span id="info-poly-count" class="info-tag">Polígonos: Calculando...</span>
+            <span id="info-fps" class="info-tag fps">60 FPS</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal / Selector de Modelos de Muestra con Vista Preliminar -->
+  <div id="sample-models-modal" class="modal-overlay hidden">
+    <div class="modal-card modal-card-large glass-panel">
+      <div class="modal-header">
+        <div class="modal-header-title-group">
+          <div class="logo-icon" style="width: 32px; height: 32px;">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </div>
+          <div>
+            <h3>Modelos Anatómicos de Muestra</h3>
+            <p class="modal-subtitle">Selecciona una pieza ósea para cargarla en el visor 3D didáctico</p>
+          </div>
+        </div>
+        <button id="btn-close-sample-models" class="btn-icon">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Filtro rápido por Categorías Biológicas -->
+        <div class="sample-categories-filter">
+          <button class="btn-filter active" data-category="all">Todos (8)</button>
+          <button class="btn-filter" data-category="Aves">🦅 Aves (2)</button>
+          <button class="btn-filter" data-category="Mamíferos">🐺 Mamíferos (4)</button>
+          <button class="btn-filter" data-category="Peces">🐟 Peces (2)</button>
+        </div>
+
+        <div id="sample-models-grid" class="sample-models-grid">
+          <!-- Las tarjetas de modelos con preview se renderizan dinámicamente aquí -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <span class="modal-footer-hint">💡 También puedes subir tus propios modelos y texturas con el botón "Cargar Modelo 3D"</span>
+        <button id="btn-dismiss-sample-models" class="btn btn-secondary">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal / Overlay de Ayuda e Instrucciones Didácticas -->
+  <div id="help-modal" class="modal-overlay hidden">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <h3>Guía para Docentes y Estudiantes</h3>
+        <button id="btn-close-help" class="btn-icon">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Información de Desarrollador y Contacto Oficial (Primero que todo) -->
+        <div class="company-author-card">
+          <div class="company-author-top">
+            <img src="logo.png?v=3.1" alt="Ambystoma Technologies" class="company-author-logo">
+            <div class="company-author-text">
+              <span class="company-badge">Desarrollo Oficial</span>
+              <h4 class="company-title">Este visor fue desarrollado por Ambystoma Technologies</h4>
+              <p class="company-subtext">Science and Technology Applications</p>
+            </div>
+          </div>
+          <div class="company-contact-box">
+            <div class="contact-box-left">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              <div class="contact-text-wrap">
+                <span class="contact-box-label">Email de contacto:</span>
+                <a href="mailto:ambystomatechnologies@gmail.com" class="contact-email-link">ambystomatechnologies@gmail.com</a>
+              </div>
+            </div>
+            <a href="mailto:ambystomatechnologies@gmail.com" class="btn btn-secondary btn-sm" title="Escribir correo a Ambystoma Technologies">
+              Contactar por Email
+            </a>
+          </div>
+        </div>
+
+        <h4>🦴 ¿Cómo cargar tus modelos 3D y texturas?</h4>
+        <p>Puedes arrastrar cualquier archivo directamente a la ventana, o hacer clic en <strong>"Cargar Modelo 3D"</strong>:</p>
+        <ul class="help-list">
+          <li><strong>Formato GLB / GLTF:</strong> Es el más recomendado. Contiene el hueso y sus texturas empaquetados en un solo archivo.</li>
+          <li><strong>Formato OBJ + MTL + Texturas:</strong> Arrastra <em>todos los archivos juntos</em> (el archivo <code>.obj</code>, el <code>.mtl</code> y las imágenes de textura <code>.jpg</code> o <code>.png</code>). El visor vinculará automáticamente las texturas en la memoria de tu navegador.</li>
+          <li><strong>Formato STL / PLY:</strong> Muy habituales en tomografías médicas (TAC/CT) y resonancias.</li>
+        </ul>
+
+        <h4>🔪 Herramienta de Sección y Corte Transversal</h4>
+        <p>Esta herramienta es <strong>100% didáctica</strong>: no corta ni destruye tu archivo original.</p>
+        <ul class="help-list">
+          <li><strong>Planos Anatómicos:</strong> Selecciona <em>Axial</em> (horizontal), <em>Sagital</em> (vertical medio) o <em>Coronal</em> (frontal).</li>
+          <li><strong>Desplazamiento:</strong> Mueve el control deslizante para pasar de un extremo del hueso al otro y examinar las estructuras internas.</li>
+          <li><strong>Tapa Sólida:</strong> La sección se rellena automáticamente con color medular para evitar el efecto de cáscara vacía.</li>
+          <li><strong>Invertir:</strong> Haz clic en <em>"Invertir Vista"</em> para alternar entre ver la mitad anterior o la mitad posterior.</li>
+        </ul>
+
+        <h4>🖱️ Controles de Cámara</h4>
+        <ul class="help-list">
+          <li><strong>Rotar:</strong> Clic izquierdo + arrastrar (o 1 dedo en pantallas táctiles).</li>
+          <li><strong>Mover/Desplazar (Pan):</strong> Clic central (rueda del scroll) o Clic derecho + arrastrar.</li>
+          <li><strong>Zoom:</strong> Rueda del ratón o pellizcar en pantalla táctil.</li>
+          <li><strong>Mesa Giratoria:</strong> Botón en el panel izquierdo para rotar 360° automáticamente (el zoom con la rueda no la detiene).</li>
+          <li><strong>Centrar:</strong> Pulsa la tecla <kbd>Espacio</kbd> o el botón de centrar.</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-dismiss-help" class="btn btn-primary">¡Entendido, empezar!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zona Visual de Arrastre de Archivos (Drag & Drop Overlay) -->
+  <div id="drop-zone-overlay" class="drop-zone-overlay hidden">
+    <div class="drop-zone-box glass-panel">
+      <svg viewBox="0 0 24 24" width="64" height="64" stroke="currentColor" stroke-width="2" fill="none" class="drop-icon">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </svg>
+      <h3>Suelta aquí tus archivos 3D</h3>
+      <p>Arrastra tu archivo <code>.glb</code>, <code>.stl</code> o el grupo <code>.obj + .mtl + texturas</code></p>
+    </div>
+  </div>
+
+  <!-- Notificaciones Toast -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts principales como Módulos ES -->
+  <script type="module" src="js/app.js?v=3.3"></script>
+</body>
+</html>
