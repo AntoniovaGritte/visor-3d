@@ -4,3 +4,4 @@ Respaldo/
 # Archivos de configuracion del entorno local
 .agents/
 start.bat
+publicar_a_github.bat
