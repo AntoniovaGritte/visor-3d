@@ -1,4 +1,8 @@
-# 🦴 AnatoCut 3D - Visor Anatómico con Corte Transversal para GitHub Pages
+# 🦴 AnatoCut 3D - Visor Anatómico Didáctico
+
+> **🌐 Sitio Web en Vivo:** [https://antoniovagritte.github.io/visor-3d/](https://antoniovagritte.github.io/visor-3d/)  
+> **Desarrollado por:** Ambystoma Technologies (*Science and Technology Applications*)  
+> **Contacto:** [ambystomatechnologies@gmail.com](mailto:ambystomatechnologies@gmail.com)
 
 Un visor 3D médico/anatómico interactivo, ultraligero y fluido, desarrollado con **Three.js** y **Vanilla Web Standards (ES Modules)**. Diseñado específicamente para que docentes de anatomía, medicina y biología puedan compartir modelos 3D de huesos y órganos con sus estudiantes mediante **GitHub Pages** sin necesidad de servidores ni bases de datos.
 
