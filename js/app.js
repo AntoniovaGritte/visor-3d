@@ -93,11 +93,36 @@ class App {
       infoModelName: document.getElementById('info-model-name'),
       infoPolyCount: document.getElementById('info-poly-count'),
       infoFps: document.getElementById('info-fps'),
-      toastContainer: document.getElementById('toast-container')
+      toastContainer: document.getElementById('toast-container'),
+
+      // Controles Móviles (Panel Desplegable en Celulares)
+      slicerPanel: document.getElementById('slicer-panel'),
+      btnOpenMobilePanel: document.getElementById('btn-open-mobile-panel'),
+      btnCloseMobilePanel: document.getElementById('btn-close-mobile-panel'),
+      mobilePanelBackdrop: document.getElementById('mobile-panel-backdrop')
     };
   }
 
   bindEvents() {
+    // 0. Panel Móvil Desplegable (Drawer para celulares)
+    if (this.dom.btnOpenMobilePanel && this.dom.slicerPanel) {
+      const openMobile = () => {
+        this.dom.slicerPanel.classList.add('mobile-open');
+        if (this.dom.mobilePanelBackdrop) this.dom.mobilePanelBackdrop.classList.add('active');
+        this.dom.btnOpenMobilePanel.classList.add('hidden');
+      };
+
+      const closeMobile = () => {
+        this.dom.slicerPanel.classList.remove('mobile-open');
+        if (this.dom.mobilePanelBackdrop) this.dom.mobilePanelBackdrop.classList.remove('active');
+        this.dom.btnOpenMobilePanel.classList.remove('hidden');
+      };
+
+      this.dom.btnOpenMobilePanel.addEventListener('click', openMobile);
+      if (this.dom.btnCloseMobilePanel) this.dom.btnCloseMobilePanel.addEventListener('click', closeMobile);
+      if (this.dom.mobilePanelBackdrop) this.dom.mobilePanelBackdrop.addEventListener('click', closeMobile);
+    }
+
     // 1. Selector de archivos
     this.dom.fileInput.addEventListener('change', (e) => {
       if (e.target.files && e.target.files.length > 0) {
