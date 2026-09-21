@@ -1,6 +1,6 @@
 # 🦴 AnatoCut 3D - Visor Anatómico Didáctico
 
-> **🌐 Sitio Web en Vivo:** [https://antoniovagritte.github.io/visor-3d/](https://antoniovagritte.github.io/visor-3d/)  
+> **🌐 Sitio Web en Vivo:** [https://ambystomatechnologies.github.io/visor-3d/](https://antoniovagritte.github.io/visor-3d/)  
 > **Desarrollado por:** Ambystoma Technologies (*Science and Technology Applications*)  
 > **Contacto:** [ambystomatechnologies@gmail.com](mailto:ambystomatechnologies@gmail.com)
 
