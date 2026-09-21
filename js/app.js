@@ -24,6 +24,9 @@ class App {
     // Activar estado visual de Mesa Giratoria por defecto
     this.updateTurntableButtonUI(true);
 
+    // Activar modo de transparencia dinámica al manipular sliders
+    this.setupSliderTransparencyMode();
+
     // Cargar modelo inicial de vértebra
     this.loadSampleBoneModel();
 
@@ -595,6 +598,66 @@ class App {
       this.dom.modelRotZ.value = Math.round(rot.z);
       this.dom.modelRotZVal.textContent = `${Math.round(rot.z)}°`;
     }
+  }
+
+  /**
+   * Hace transparente el panel y el fondo mientras se arrastra cualquier slider
+   * de corte o giro, permitiendo ver la pieza anatómica claramente en tiempo real.
+   */
+  setupSliderTransparencyMode() {
+    if (!this.dom.slicerPanel) return;
+    const sliders = this.dom.slicerPanel.querySelectorAll('input[type="range"]');
+    if (!sliders || sliders.length === 0) return;
+
+    let activeSliderSection = null;
+    let activeGroup = null;
+
+    const startTransparency = (slider) => {
+      // Exclusivo para celulares (en PC se mantiene la visibilidad intacta como solicitado)
+      if (window.innerWidth > 768) return;
+
+      this.dom.slicerPanel.classList.add('slider-active-mode');
+      if (this.dom.mobilePanelBackdrop) {
+        this.dom.mobilePanelBackdrop.classList.add('slider-active-mode');
+      }
+
+      activeSliderSection = slider.closest('.control-section') || slider.parentElement;
+      if (activeSliderSection) {
+        activeSliderSection.classList.add('slider-dragging-active');
+      }
+
+      activeGroup = slider.closest('.accordion-group');
+      if (activeGroup) {
+        activeGroup.classList.add('has-active-slider');
+      }
+    };
+
+    const endTransparency = () => {
+      this.dom.slicerPanel.classList.remove('slider-active-mode');
+      if (this.dom.mobilePanelBackdrop) {
+        this.dom.mobilePanelBackdrop.classList.remove('slider-active-mode');
+      }
+
+      if (activeSliderSection) {
+        activeSliderSection.classList.remove('slider-dragging-active');
+        activeSliderSection = null;
+      }
+
+      if (activeGroup) {
+        activeGroup.classList.remove('has-active-slider');
+        activeGroup = null;
+      }
+    };
+
+    sliders.forEach((slider) => {
+      slider.addEventListener('pointerdown', () => startTransparency(slider));
+      slider.addEventListener('touchstart', () => startTransparency(slider), { passive: true });
+      slider.addEventListener('change', endTransparency);
+    });
+
+    window.addEventListener('pointerup', endTransparency);
+    window.addEventListener('pointercancel', endTransparency);
+    window.addEventListener('touchend', endTransparency);
   }
 
   toggleFullscreen() {
