@@ -126,6 +126,14 @@ class App {
       if (this.dom.mobilePanelBackdrop) this.dom.mobilePanelBackdrop.addEventListener('click', closeMobile);
     }
 
+    // Redirección infalible al hacer clic en el logotipo o marca oficial
+    document.querySelectorAll('.logo-group, .header-center-branding, .header-brand-logo, .company-author-logo').forEach((el) => {
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', (e) => {
+        window.location.href = 'https://ambystomatechnologies.github.io/';
+      });
+    });
+
     // 1. Selector de archivos
     this.dom.fileInput.addEventListener('change', (e) => {
       if (e.target.files && e.target.files.length > 0) {

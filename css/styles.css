@@ -1428,7 +1428,16 @@ kbd {
 
 @media (max-width: 980px) {
   .header-center-branding {
-    display: none;
+    display: flex;
+    height: 40px;
+    padding: 0 6px;
+    cursor: pointer !important;
+  }
+  .header-brand-logo {
+    height: 34px;
+    max-height: 34px;
+    cursor: pointer !important;
+    pointer-events: auto !important;
   }
 }
 
